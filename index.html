@@ -65,6 +65,7 @@
             resize: vertical;
         }
 
+        /* Buttons */
         button {
             width: 100%;
             padding: 10px;
@@ -82,6 +83,15 @@
             background-color: #0056b3;
         }
 
+        .btn-remove {
+            background-color: #dc3545;
+            display: none; /* Hidden by default until a photo is uploaded */
+        }
+
+        .btn-remove:hover {
+            background-color: #c82333;
+        }
+
         /* A4 Page Layout */
         .a4-page {
             width: 210mm;
@@ -91,14 +101,17 @@
             position: relative;
             
             /* BORDER LOGIC */
-            border: 20mm solid transparent; /* This creates the space for the border image */
-            padding: 10mm; /* This gives the text breathing room from the border */
+            border: 20mm solid transparent; /* Creates the space for the border image */
+            padding: 10mm; /* Gives the text breathing room from the border */
             
             /* Layer 1 (Top): Solid white center. Layer 2 (Bottom): Uploaded theme */
             background-image: linear-gradient(white, white), var(--theme-bg, none);
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
-            background-size: auto, 100% 100%; /* Stretches the image to fit the border */
+            
+            /* SMART RENDERING: 'cover' keeps aspect ratio, 'center' prevents awkward cropping */
+            background-size: auto, cover; 
+            background-position: center, center; 
             background-repeat: no-repeat;
             
             /* Fallback color if no image is loaded */
@@ -143,7 +156,6 @@
                 box-shadow: none;
                 width: 210mm;
                 height: 297mm;
-                /* Force browsers to print the background image */
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 page-break-after: always;
@@ -188,7 +200,8 @@
         <div class="form-group">
             <label>Theme (Border Image):</label>
             <input type="file" id="inpTheme" accept="image/*">
-            <small style="color:#666;">Upload an image frame/border. Transparent PNGs work best.</small>
+            <button id="btnRemove" class="btn-remove" type="button">Remove Photo</button>
+            <small style="color:#666; display:block; margin-top:5px;">Upload a full photo. The app will smartly crop it to fit as a border without stretching.</small>
         </div>
 
         <button onclick="window.print()">Save as PDF / Print</button>
@@ -227,17 +240,46 @@
         bindInput('inpNumber', 'outNumber');
         bindInput('inpContent', 'outContent');
 
-        // Handle Image Upload for the Theme (Border)
-        document.getElementById('inpTheme').addEventListener('change', function(e) {
+        // Handle Image Upload (Smart & Fast for Large Files)
+        const inpTheme = document.getElementById('inpTheme');
+        const btnRemove = document.getElementById('btnRemove');
+        const pagePreview = document.getElementById('pagePreview');
+        let currentImageUrl = null;
+
+        inpTheme.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    const page = document.getElementById('pagePreview');
-                    // Set the uploaded image as a CSS variable to be used in the border trick
-                    page.style.setProperty('--theme-bg', `url('${event.target.result}')`);
-                };
-                reader.readAsDataURL(file);
+                // Clear old memory if an image was already uploaded
+                if (currentImageUrl) {
+                    URL.revokeObjectURL(currentImageUrl);
+                }
+                
+                // Create a fast local URL for the image (Supports very large MB sizes)
+                currentImageUrl = URL.createObjectURL(file);
+                
+                // Apply to the border
+                pagePreview.style.setProperty('--theme-bg', `url('${currentImageUrl}')`);
+                
+                // Show the remove button
+                btnRemove.style.display = 'block';
+            }
+        });
+
+        // Handle Remove Photo Button
+        btnRemove.addEventListener('click', function() {
+            // Reset input file
+            inpTheme.value = '';
+            
+            // Remove CSS variable
+            pagePreview.style.removeProperty('--theme-bg');
+            
+            // Hide button
+            btnRemove.style.display = 'none';
+            
+            // Free up browser memory
+            if (currentImageUrl) {
+                URL.revokeObjectURL(currentImageUrl);
+                currentImageUrl = null;
             }
         });
     </script>
