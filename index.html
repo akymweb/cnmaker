@@ -86,16 +86,23 @@
         .a4-page {
             width: 210mm;
             min-height: 297mm; /* Standard A4 Size */
-            background-color: white;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
             box-sizing: border-box;
             position: relative;
-            background-size: 100% 100%; /* For the uploaded theme border */
-            background-position: center;
+            
+            /* BORDER LOGIC */
+            border: 20mm solid transparent; /* This creates the space for the border image */
+            padding: 10mm; /* This gives the text breathing room from the border */
+            
+            /* Layer 1 (Top): Solid white center. Layer 2 (Bottom): Uploaded theme */
+            background-image: linear-gradient(white, white), var(--theme-bg, none);
+            background-origin: padding-box, border-box;
+            background-clip: padding-box, border-box;
+            background-size: auto, 100% 100%; /* Stretches the image to fit the border */
             background-repeat: no-repeat;
             
-            /* Inner padding to keep text away from the border theme */
-            padding: 30mm; 
+            /* Fallback color if no image is loaded */
+            background-color: white; 
         }
 
         .header-grid {
@@ -113,10 +120,10 @@
         }
 
         .content-body {
-            text-align: justify; /* Justify requirement */
+            text-align: justify;
             font-size: 15px;
             line-height: 1.6;
-            white-space: pre-wrap; /* Keeps paragraphs intact */
+            white-space: pre-wrap;
         }
 
         /* Print Settings */
@@ -126,7 +133,7 @@
                 display: block;
             }
             .sidebar {
-                display: none; /* Hide controls when printing */
+                display: none;
             }
             .preview-area {
                 padding: 0;
@@ -136,7 +143,9 @@
                 box-shadow: none;
                 width: 210mm;
                 height: 297mm;
-                padding: 20mm; /* Adjust padding for physical print */
+                /* Force browsers to print the background image */
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
                 page-break-after: always;
             }
             @page {
@@ -153,17 +162,17 @@
         
         <div class="form-group">
             <label>Name:</label>
-            <input type="text" id="inpName" placeholder="e.g. Juan Dela Cruz">
+            <input type="text" id="inpName" placeholder="e.g. Myka L. Lascano">
         </div>
 
         <div class="form-group">
             <label>Grade and Section:</label>
-            <input type="text" id="inpSection" placeholder="e.g. 12 - STEM A">
+            <input type="text" id="inpSection" placeholder="e.g. 12 STEM 1A">
         </div>
 
         <div class="form-group">
             <label>Teacher:</label>
-            <input type="text" id="inpTeacher" placeholder="e.g. Mr. Smith">
+            <input type="text" id="inpTeacher" placeholder="e.g. Ms. Myka L. Lascano">
         </div>
 
         <div class="form-group">
@@ -225,8 +234,8 @@
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     const page = document.getElementById('pagePreview');
-                    // Set the uploaded image as the background of the A4 page
-                    page.style.backgroundImage = `url('${event.target.result}')`;
+                    // Set the uploaded image as a CSS variable to be used in the border trick
+                    page.style.setProperty('--theme-bg', `url('${event.target.result}')`);
                 };
                 reader.readAsDataURL(file);
             }
