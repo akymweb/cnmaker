@@ -442,63 +442,68 @@
         }
 
         // ========================================================
-        // THE BULLETPROOF PDF DOWNLOAD FIX
+        // THE GUARANTEED PDF DOWNLOAD FIX
         // ========================================================
         document.getElementById('btnDownload').addEventListener('click', async () => {
             const loader = document.getElementById('loadingOverlay');
-            loader.style.display = 'flex'; // Turn on loading screen
-
-            // Give the browser a split second to display the loading screen before freezing to calculate the PDF
+            loader.style.display = 'flex'; // Show loading screen
+            
+            // Give the browser a moment to show the loader
             await new Promise(resolve => setTimeout(resolve, 150)); 
+            
+            const container = document.getElementById('document-container');
+            const scrollArea = document.querySelector('.preview-scroll-area');
+            
+            // 1. Save all original styles
+            const origTransform = container.style.transform;
+            const origBodyOverflow = document.body.style.overflow;
+            const origScrollOverflow = scrollArea.style.overflow;
+            const origScrollHeight = scrollArea.style.height;
+            
+            // 2. CRITICAL FIX: "Unwrap" the app completely so the PDF engine can see it all
+            container.style.transform = 'none';
+            document.body.style.overflow = 'visible';
+            scrollArea.style.overflow = 'visible';
+            scrollArea.style.height = 'auto';
+            
+            // Wait a split second for the browser to physically render the unwrapped layout
+            await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Create an absolute clone of the document container. 
-            // This prevents html2canvas from being clipped by scrollbars or flexbox layouts!
-            const originalContainer = document.getElementById('document-container');
-            const clone = originalContainer.cloneNode(true);
-            
-            // Apply variables directly to clone so it remembers sizes and themes
-            clone.style.cssText = originalContainer.style.cssText;
-            clone.style.position = 'absolute';
-            clone.style.top = '0';
-            clone.style.left = '0';
-            clone.style.zIndex = '-9999'; // Hide it behind everything
-            clone.style.transform = 'none'; // CRITICAL: Remove zoom!
-            clone.style.gap = '0'; // Remove spacing between pages
-            
-            document.body.appendChild(clone);
-            
             let pFormat = document.getElementById('selSize').value.toLowerCase();
             if(pFormat === 'legal') pFormat = [215.9, 355.6]; 
 
             const opt = {
                 margin:       0,
                 filename:     'Concept_Notes.pdf',
-                image:        { type: 'jpeg', quality: 1.0 },
+                image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0, 
-                    scrollX: 0, 
-                    windowWidth: clone.scrollWidth,
-                    windowHeight: clone.scrollHeight
+                    allowTaint: true,
+                    scrollY: 0,
+                    backgroundColor: '#ffffff' // Forces a white background to prevent transparent rendering bugs
                 },
                 jsPDF:        { unit: 'mm', format: pFormat, orientation: 'portrait' },
                 pagebreak:    { mode: 'css', elements: '.page-preview' } 
             };
             
             try {
-                // Generate PDF from the isolated clone
-                await html2pdf().set(opt).from(clone).save();
+                // Generate PDF from the actual unwrapped container
+                await html2pdf().set(opt).from(container).save();
             } catch(e) {
                 console.error("PDF generation failed", e);
+                alert("Something went wrong generating the PDF. Please try again.");
             } finally {
-                // Cleanup phase
-                document.body.removeChild(clone);
-                loader.style.display = 'none'; // Turn off loading screen
+                // 3. Restore the app back to normal instantly
+                container.style.transform = origTransform;
+                document.body.style.overflow = origBodyOverflow;
+                scrollArea.style.overflow = origScrollOverflow;
+                scrollArea.style.height = origScrollHeight;
                 
-                // Hide mobile menu so user can see their preview again
+                loader.style.display = 'none'; // Hide loader
+                
                 if(window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
+                    document.getElementById('sidebarMenu').classList.remove('active');
                 }
             }
         });
