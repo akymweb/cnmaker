@@ -15,7 +15,7 @@
             --border-thickness: 20mm;
             
             /* Glassmorphism Variables for Maximum Transparency */
-            --sidebar-bg: rgba(255, 255, 255, 0.15); /* Very transparent */
+            --sidebar-bg: rgba(255, 255, 255, 0.15);
             --sidebar-text: #222;
             --card-bg: rgba(255, 255, 255, 0.25);
             --card-border: rgba(255, 255, 255, 0.4);
@@ -32,7 +32,7 @@
         /* The Animated Floating Orbs Background (BRIGHT & MADAMI!) */
         body {
             font-family: 'Century Gothic', sans-serif; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
-            background-color: #e6f0fa; /* Light airy base */
+            background-color: #e6f0fa;
             background-image: 
                 radial-gradient(circle at 15% 20%, rgba(255, 105, 180, 0.5) 0%, transparent 35%),
                 radial-gradient(circle at 85% 10%, rgba(0, 191, 255, 0.5) 0%, transparent 35%),
@@ -140,7 +140,7 @@
         .page-preview {
             width: var(--page-width); height: var(--page-height); box-shadow: 0 15px 35px rgba(0,0,0,0.4);
             box-sizing: border-box; position: relative; background-color: white; padding: var(--border-thickness); 
-            display: flex; flex-direction: column; page-break-after: always; break-after: page; overflow: hidden;
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
         .page-inner {
@@ -166,11 +166,7 @@
                 transform: translateX(-100%); z-index: 1000; padding-top: 60px;
             }
             .sidebar.active { transform: translateX(0); }
-            
-            /* Push zoom controls down so they don't hide behind the menu button */
             .zoom-controls { padding-top: 60px; flex-wrap: wrap; }
-            
-            /* Fix clipping issues when zoomed out on small screens */
             .preview-scroll-area { padding: 10px; justify-content: flex-start; }
             #document-container { transform-origin: top left; }
         }
@@ -180,7 +176,7 @@
 
     <div id="loadingOverlay" class="loader-overlay">
         <div class="spinner"></div>
-        <p>Creating your PDF...</p>
+        <p>Creating your perfect PDF...</p>
     </div>
 
     <button class="mobile-toggle" id="btnMobileMenu">☰ Menu</button>
@@ -304,7 +300,14 @@
             document.getElementById('zoomLabel').textContent = Math.round(currentZoom * 100) + '%';
         }
         function changeZoom(amount) { currentZoom += amount; if(currentZoom < 0.3) currentZoom = 0.3; if(currentZoom > 2.5) currentZoom = 2.5; updateZoomUI(); }
-        function resetZoom() { currentZoom = 1.0; updateZoomUI(); }
+        function resetZoom() { 
+            if (window.innerWidth <= 768) {
+                currentZoom = Math.max(0.3, window.innerWidth / 850);
+            } else {
+                currentZoom = 1.0; 
+            }
+            updateZoomUI(); 
+        }
 
         // Setting Document Variables
         function updateGlobalVariables() {
@@ -358,7 +361,7 @@
         document.getElementById('selBorderEngine').addEventListener('change', triggerRender);
 
         /* ========================================================
-           THE SMART AUTO-PAGINATION ENGINE
+           THE SMART AUTO-PAGINATION ENGINE (Blank Page Fix applied)
            ======================================================== */
         let renderTimeout;
         
@@ -412,11 +415,16 @@
             for (let i = 0; i < paragraphs.length; i++) {
                 let pText = paragraphs[i];
                 
-                if (pText.trim() === '') {
-                    current.contentBox.appendChild(document.createElement('br'));
-                    if (current.inner.scrollHeight > current.inner.clientHeight) {
+                if (pText === '') {
+                    let br = document.createElement('br');
+                    current.contentBox.appendChild(br);
+                    
+                    // Added a +2px buffer so it doesn't accidentally trigger a blank page too early
+                    if (current.inner.scrollHeight > current.inner.clientHeight + 2) {
+                        br.remove();
                         current = createEmptyPage(false);
                         docContainer.appendChild(current.page);
+                        current.contentBox.appendChild(document.createElement('br'));
                     }
                     continue;
                 }
@@ -429,7 +437,7 @@
                 for (let j = 0; j < words.length; j++) {
                     pElement.innerHTML += words[j] + ' ';
                     
-                    if (current.inner.scrollHeight > current.inner.clientHeight) {
+                    if (current.inner.scrollHeight > current.inner.clientHeight + 2) {
                         pElement.innerHTML = pElement.innerHTML.slice(0, -(words[j].length + 1));
                         current = createEmptyPage(false); 
                         docContainer.appendChild(current.page);
@@ -439,90 +447,84 @@
                     }
                 }
             }
+
+            // CLEANUP: If the very last page generated is totally empty, delete it!
+            const allPages = document.querySelectorAll('.page-preview');
+            if (allPages.length > 1) {
+                const lastPage = allPages[allPages.length - 1];
+                const contentBody = lastPage.querySelector('.content-body');
+                if (contentBody.innerHTML.trim() === '') {
+                    lastPage.remove();
+                }
+            }
         }
 
         // ========================================================
-        // THE GUARANTEED PDF DOWNLOAD FIX
+        // THE FLAWLESS, PAGE-BY-PAGE PDF ENGINE 
         // ========================================================
         document.getElementById('btnDownload').addEventListener('click', async () => {
             const loader = document.getElementById('loadingOverlay');
             loader.style.display = 'flex'; // Show loading screen
-            
-            // Give the browser a moment to show the loader
             await new Promise(resolve => setTimeout(resolve, 150)); 
             
-            const container = document.getElementById('document-container');
-            const scrollArea = document.querySelector('.preview-scroll-area');
+            const scrollArea = document.getElementById('scrollArea');
+            const origTransform = docContainer.style.transform;
+            const origOverflow = scrollArea.style.overflow;
             
-            // 1. Save all original styles
-            const origTransform = container.style.transform;
-            const origBodyOverflow = document.body.style.overflow;
-            const origScrollOverflow = scrollArea.style.overflow;
-            const origScrollHeight = scrollArea.style.height;
-            
-            // 2. CRITICAL FIX: "Unwrap" the app completely so the PDF engine can see it all
-            container.style.transform = 'none';
-            document.body.style.overflow = 'visible';
+            // Un-restrict the view temporarily so the camera sees everything
+            docContainer.style.transform = 'none';
+            docContainer.style.gap = '0';
             scrollArea.style.overflow = 'visible';
-            scrollArea.style.height = 'auto';
             
-            // Wait a split second for the browser to physically render the unwrapped layout
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Wait a split second for DOM layout to physically update
+            await new Promise(resolve => setTimeout(resolve, 200));
 
+            const pages = document.querySelectorAll('.page-preview');
             let pFormat = document.getElementById('selSize').value.toLowerCase();
             if(pFormat === 'legal') pFormat = [215.9, 355.6]; 
 
             const opt = {
-                margin:       0,
-                filename:     'Concept_Notes.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    allowTaint: true,
-                    scrollY: 0,
-                    backgroundColor: '#ffffff' // Forces a white background to prevent transparent rendering bugs
-                },
-                jsPDF:        { unit: 'mm', format: pFormat, orientation: 'portrait' },
-                pagebreak:    { mode: 'css', elements: '.page-preview' } 
+                margin: 0,
+                filename: 'Concept_Notes.pdf',
+                image: { type: 'jpeg', quality: 1.0 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: pFormat, orientation: 'portrait' }
             };
-            
+
             try {
-                // Generate PDF from the actual unwrapped container
-                await html2pdf().set(opt).from(container).save();
+                // To avoid height-limit bugs, we process pages one-by-one perfectly
+                let worker = html2pdf().set(opt).from(pages[0]).toPdf();
+                
+                for (let i = 1; i < pages.length; i++) {
+                    worker = worker.get('pdf').then(pdf => {
+                        pdf.addPage();
+                    }).from(pages[i]).toContainer().toCanvas().toPdf();
+                }
+                
+                await worker.save();
+                
             } catch(e) {
                 console.error("PDF generation failed", e);
                 alert("Something went wrong generating the PDF. Please try again.");
             } finally {
-                // 3. Restore the app back to normal instantly
-                container.style.transform = origTransform;
-                document.body.style.overflow = origBodyOverflow;
-                scrollArea.style.overflow = origScrollOverflow;
-                scrollArea.style.height = origScrollHeight;
+                // Instantly revert back to UI mode
+                docContainer.style.transform = origTransform;
+                docContainer.style.gap = '40px';
+                scrollArea.style.overflow = origOverflow;
                 
                 loader.style.display = 'none'; // Hide loader
                 
+                // Hide sidebar on mobile after download
                 if(window.innerWidth <= 768) {
                     document.getElementById('sidebarMenu').classList.remove('active');
                 }
             }
         });
 
-        // Init
+        // Initialize App
         updateGlobalVariables();
+        resetZoom(); // Applies auto-zoom for mobile on load
         renderPages();
-
-        // Auto-zoom perfectly for mobile screens on load
-        if (window.innerWidth <= 768) {
-            // 850 is roughly the pixel width of A4 + padding
-            currentZoom = (window.innerWidth / 850); 
-            
-            // Put a hard limit so it doesn't get ridiculously small
-            if (currentZoom < 0.3) currentZoom = 0.3; 
-            
-            updateZoomUI();
-        }
-        
     </script>
 </body>
 </html>
