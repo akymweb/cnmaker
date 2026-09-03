@@ -24,6 +24,7 @@
             display: flex;
             height: 100vh;
             color: #333;
+            overflow: hidden;
         }
 
         /* Modern Sidebar */
@@ -78,7 +79,7 @@
             color: #e0e0e0;
         }
 
-        input[type="text"], textarea, select {
+        input[type="text"], textarea, select, input[type="range"] {
             width: 100%;
             padding: 10px;
             border: none;
@@ -121,7 +122,6 @@
         button:hover {
             background-color: #45a049;
             transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .btn-remove {
@@ -134,13 +134,40 @@
         }
 
         /* Preview Area */
-        .preview-area {
+        .preview-container {
             flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .zoom-controls {
+            background: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 5;
+            align-items: center;
+        }
+
+        .zoom-controls button {
+            width: auto;
+            margin: 0;
+            padding: 8px 15px;
+            background: #333;
+            font-size: 14px;
+        }
+        .zoom-controls button:hover { background: #555; }
+        
+        .preview-scroll-area {
+            flex-grow: 1;
+            overflow: auto;
+            padding: 40px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 40px;
-            overflow-y: auto;
         }
 
         /* The Page Layout */
@@ -151,22 +178,35 @@
             box-sizing: border-box;
             position: relative;
             background-color: white;
-            
-            /* Dynamic Font Applied Here */
             font-family: 'Century Gothic', sans-serif;
-            
-            /* Border Logic */
-            border: 20mm solid transparent;
             padding: 10mm;
             
-            background-image: linear-gradient(white, white), var(--theme-bg, none);
+            /* Zoom Control */
+            transform-origin: top center;
+            transition: transform 0.2s ease;
+        }
+
+        /* --- BORDER ENGINE MODES --- */
+        
+        /* Mode 1: Classic Cover (Best for Textures) */
+        .page-preview.mode-classic {
+            border: var(--border-thickness, 20mm) solid transparent;
+            background-image: linear-gradient(white, white), var(--theme-bg-raw, none);
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
-            
-            /* These variables are controlled by the "Border Style" dropdown */
-            background-size: auto, var(--bg-size, contain); 
-            background-position: center, center; 
-            background-repeat: no-repeat, var(--bg-repeat, repeat); 
+            background-size: auto, var(--bg-size, cover);
+            background-position: center, center;
+            background-repeat: no-repeat, var(--bg-repeat, no-repeat);
+        }
+
+        /* Mode 2: Smart Slice (Best for Photos with People) */
+        .page-preview.mode-slice {
+            border: var(--border-thickness, 20mm) solid transparent;
+            border-image-source: var(--theme-bg-raw, none);
+            border-image-slice: var(--slice-depth, 25%);
+            border-image-repeat: round;
+            background: white; 
+            background-clip: padding-box;
         }
 
         .header-grid {
@@ -178,11 +218,7 @@
             padding-bottom: 10px;
         }
 
-        .header-grid p {
-            margin: 5px 0;
-            font-size: 14px;
-        }
-
+        .header-grid p { margin: 5px 0; font-size: 14px; }
         .content-body {
             text-align: justify;
             font-size: 15px;
@@ -190,34 +226,13 @@
             white-space: pre-wrap;
         }
 
-        /* Scrollbar Styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1; 
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888; 
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555; 
-        }
-
         /* Print Settings */
         @media print {
-            body {
-                background-color: white;
-                background-image: none;
-                display: block;
-            }
-            .sidebar { display: none; }
-            .preview-area {
-                padding: 0;
-                display: block;
-            }
+            body { background: white; display: block; overflow: visible; }
+            .sidebar, .zoom-controls { display: none; }
+            .preview-scroll-area { padding: 0; display: block; overflow: visible; }
             .page-preview {
+                transform: none !important;
                 box-shadow: none;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
@@ -225,15 +240,15 @@
             }
         }
     </style>
-    <style id="printStyle">
-        @page { size: A4; margin: 0; }
-    </style>
+    <style id="printStyle">@page { size: A4; margin: 0; }</style>
 </head>
 <body>
 
+    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>✨ Concept Notes Maker</h2>
         
+        <!-- Document Settings -->
         <div class="settings-card">
             <h3>📄 Document Settings</h3>
             
@@ -252,77 +267,42 @@
                     <option value="'Century Gothic', sans-serif">Century Gothic</option>
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
-                    <option value="Verdana, sans-serif">Verdana</option>
-                    <option value="Tahoma, sans-serif">Tahoma</option>
-                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                    <option value="Georgia, serif">Georgia</option>
-                    <option value="Garamond, serif">Garamond</option>
-                    <option value="'Courier New', monospace">Courier New</option>
                     <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
                     <option value="Impact, sans-serif">Impact</option>
-                    <option value="'Lucida Sans Unicode', sans-serif">Lucida Sans Unicode</option>
-                    <option value="Calibri, sans-serif">Calibri</option>
-                    <option value="Cambria, serif">Cambria</option>
-                    <option value="Helvetica, sans-serif">Helvetica</option>
-                    <option value="'Palatino Linotype', serif">Palatino</option>
-                    <option value="'Book Antiqua', serif">Book Antiqua</option>
-                    <option value="'Arial Black', sans-serif">Arial Black</option>
-                    <option value="'Franklin Gothic Medium', sans-serif">Franklin Gothic</option>
-                    <option value="Consolas, monospace">Consolas</option>
-                    <option value="Monaco, monospace">Monaco</option>
-                    <option value="Optima, sans-serif">Optima</option>
-                    <option value="Didot, serif">Didot</option>
-                    <option value="Copperplate, fantasy">Copperplate</option>
                     <option value="Papyrus, fantasy">Papyrus</option>
                     <option value="'Brush Script MT', cursive">Brush Script MT</option>
                 </select>
             </div>
         </div>
 
+        <!-- Student Details -->
         <div class="settings-card">
             <h3>👤 Student Details</h3>
-            
-            <div class="form-group">
-                <label>Name:</label>
-                <input type="text" id="inpName" placeholder="e.g. Myka L. Lascano">
-            </div>
-
-            <div class="form-group">
-                <label>Grade and Section:</label>
-                <input type="text" id="inpSection" placeholder="e.g. 12 STEM 1A">
-            </div>
-
-            <div class="form-group">
-                <label>Teacher:</label>
-                <input type="text" id="inpTeacher" placeholder="e.g. Ms. Myka L. Lascano">
-            </div>
-
-            <div class="form-group">
-                <label>Concept Notes Number:</label>
-                <input type="text" id="inpNumber" placeholder="e.g. 01">
-            </div>
+            <div class="form-group"><label>Name:</label><input type="text" id="inpName" placeholder="e.g. Myka L. Lascano"></div>
+            <div class="form-group"><label>Grade and Section:</label><input type="text" id="inpSection" placeholder="e.g. 12 STEM 1A"></div>
+            <div class="form-group"><label>Teacher:</label><input type="text" id="inpTeacher" placeholder="e.g. Ms. Myka L. Lascano"></div>
+            <div class="form-group"><label>Concept Notes Number:</label><input type="text" id="inpNumber" placeholder="e.g. 01"></div>
         </div>
 
+        <!-- Content & Theme -->
         <div class="settings-card">
             <h3>🎨 Content & Theme</h3>
+            <div class="form-group"><label>Content:</label><textarea id="inpContent" rows="6" placeholder="Type your notes here..."></textarea></div>
+            <div class="form-group"><label>Theme (Border Image):</label><input type="file" id="inpTheme" accept="image/*"></div>
+
+            <div class="form-group">
+                <label>Border Engine:</label>
+                <select id="selBorderEngine">
+                    <option value="mode-slice">Smart 9-Slice (Best for Photos)</option>
+                    <option value="mode-classic-cover">Classic Cover (Fills entire background)</option>
+                    <option value="mode-classic-repeat">Classic Repeat (Tiles the image)</option>
+                </select>
+                <small style="color:#ccc; display:block; margin-top:5px;">Smart 9-Slice extracts the edges of your photo and repeats them perfectly without covering the faces!</small>
+            </div>
             
             <div class="form-group">
-                <label>Content:</label>
-                <textarea id="inpContent" rows="8" placeholder="Type your notes here..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>Theme (Border Image):</label>
-                <input type="file" id="inpTheme" accept="image/*">
-            </div>
-
-            <div class="form-group">
-                <label>Border Style:</label>
-                <select id="selBorderStyle">
-                    <option value="repeat">Smart Repeat (Tiles - Best for photos)</option>
-                    <option value="cover">Cover (Fills - May crop edges)</option>
-                    <option value="stretch">Stretch (Fits exactly - May distort)</option>
-                </select>
+                <label>Border Thickness: <span id="valThickness">20</span>mm</label>
+                <input type="range" id="inpThickness" min="5" max="50" value="20">
             </div>
 
             <button id="btnRemove" class="btn-remove" type="button">Remove Photo</button>
@@ -331,103 +311,124 @@
         <button onclick="window.print()">🖨️ Save as PDF / Print</button>
     </div>
 
-    <div class="preview-area">
-        <div class="page-preview" id="pagePreview">
-            
-            <div class="header-grid">
-                <div>
-                    <p><strong>Name:</strong> <span id="outName"></span></p>
-                    <p><strong>Grade & Section:</strong> <span id="outSection"></span></p>
+    <!-- PREVIEW AREA -->
+    <div class="preview-container">
+        
+        <!-- Zoom Controls -->
+        <div class="zoom-controls">
+            <span style="font-weight:bold;">Preview Zoom:</span>
+            <button onclick="changeZoom(-0.1)">➖ Zoom Out</button>
+            <span id="zoomLabel">100%</span>
+            <button onclick="changeZoom(0.1)">➕ Zoom In</button>
+            <button onclick="resetZoom()">Reset</button>
+        </div>
+
+        <!-- Document Scroll Area -->
+        <div class="preview-scroll-area">
+            <!-- Added mode-slice as default -->
+            <div class="page-preview mode-slice" id="pagePreview">
+                <div class="header-grid">
+                    <div>
+                        <p><strong>Name:</strong> <span id="outName"></span></p>
+                        <p><strong>Grade & Section:</strong> <span id="outSection"></span></p>
+                    </div>
+                    <div>
+                        <p><strong>Teacher:</strong> <span id="outTeacher"></span></p>
+                        <p><strong>CN Number:</strong> <span id="outNumber"></span></p>
+                    </div>
                 </div>
-                <div>
-                    <p><strong>Teacher:</strong> <span id="outTeacher"></span></p>
-                    <p><strong>CN Number:</strong> <span id="outNumber"></span></p>
-                </div>
+                <div class="content-body" id="outContent"></div>
             </div>
-
-            <div class="content-body" id="outContent"></div>
-
         </div>
     </div>
 
+    <!-- JAVASCRIPT -->
     <script>
-        // 1. Live Text Binding
-        const bindInput = (inputId, outputId) => {
-            document.getElementById(inputId).addEventListener('input', function(e) {
-                document.getElementById(outputId).textContent = e.target.value;
-            });
-        };
-        bindInput('inpName', 'outName');
-        bindInput('inpSection', 'outSection');
-        bindInput('inpTeacher', 'outTeacher');
-        bindInput('inpNumber', 'outNumber');
-        bindInput('inpContent', 'outContent');
-
         const pagePreview = document.getElementById('pagePreview');
 
-        // 2. Handle Paper Size
-        document.getElementById('selSize').addEventListener('change', function(e) {
-            const size = e.target.value;
+        // Live Text
+        const bindInput = (idIn, idOut) => {
+            document.getElementById(idIn).addEventListener('input', e => {
+                document.getElementById(idOut).textContent = e.target.value;
+            });
+        };
+        bindInput('inpName', 'outName'); bindInput('inpSection', 'outSection');
+        bindInput('inpTeacher', 'outTeacher'); bindInput('inpNumber', 'outNumber');
+        bindInput('inpContent', 'outContent');
+
+        // Zoom Logic
+        let currentZoom = 1.0;
+        const zoomLabel = document.getElementById('zoomLabel');
+        function updateZoomUI() {
+            pagePreview.style.transform = `scale(${currentZoom})`;
+            zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
+        }
+        function changeZoom(amount) {
+            currentZoom += amount;
+            if(currentZoom < 0.3) currentZoom = 0.3;
+            if(currentZoom > 2.5) currentZoom = 2.5;
+            updateZoomUI();
+        }
+        function resetZoom() {
+            currentZoom = 1.0;
+            updateZoomUI();
+        }
+
+        // Paper Size & Fonts
+        document.getElementById('selSize').addEventListener('change', e => {
+            const v = e.target.value;
             const printStyle = document.getElementById('printStyle');
+            if(v==='A4'){ pagePreview.style.setProperty('--page-width','210mm'); pagePreview.style.setProperty('--page-height','297mm'); printStyle.innerHTML='@page{size: A4; margin:0;}'; }
+            if(v==='Letter'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','11in'); printStyle.innerHTML='@page{size: letter; margin:0;}'; }
+            if(v==='Legal'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','14in'); printStyle.innerHTML='@page{size: legal; margin:0;}'; }
+        });
+        document.getElementById('selFont').addEventListener('change', e => pagePreview.style.fontFamily = e.target.value);
+
+        // Border Thickness Slider
+        document.getElementById('inpThickness').addEventListener('input', e => {
+            document.getElementById('valThickness').textContent = e.target.value;
+            pagePreview.style.setProperty('--border-thickness', e.target.value + 'mm');
+        });
+
+        // Border Engine Switcher
+        document.getElementById('selBorderEngine').addEventListener('change', e => {
+            const mode = e.target.value;
+            pagePreview.className = 'page-preview'; // reset classes
             
-            if (size === 'A4') {
-                pagePreview.style.setProperty('--page-width', '210mm');
-                pagePreview.style.setProperty('--page-height', '297mm');
-                printStyle.innerHTML = '@page { size: A4; margin: 0; }';
-            } else if (size === 'Letter') {
-                pagePreview.style.setProperty('--page-width', '8.5in');
-                pagePreview.style.setProperty('--page-height', '11in');
-                printStyle.innerHTML = '@page { size: letter; margin: 0; }';
-            } else if (size === 'Legal') {
-                pagePreview.style.setProperty('--page-width', '8.5in');
-                pagePreview.style.setProperty('--page-height', '14in');
-                printStyle.innerHTML = '@page { size: legal; margin: 0; }';
-            }
-        });
-
-        // 3. Handle Fonts
-        document.getElementById('selFont').addEventListener('change', function(e) {
-            pagePreview.style.fontFamily = e.target.value;
-        });
-
-        // 4. Handle Border Style (Fix for Distortion)
-        document.getElementById('selBorderStyle').addEventListener('change', function(e) {
-            const style = e.target.value;
-            if (style === 'repeat') {
-                pagePreview.style.setProperty('--bg-size', 'contain');
-                pagePreview.style.setProperty('--bg-repeat', 'repeat');
-            } else if (style === 'cover') {
+            if (mode === 'mode-slice') {
+                pagePreview.classList.add('mode-slice');
+            } else if (mode === 'mode-classic-cover') {
+                pagePreview.classList.add('mode-classic');
                 pagePreview.style.setProperty('--bg-size', 'cover');
                 pagePreview.style.setProperty('--bg-repeat', 'no-repeat');
-            } else if (style === 'stretch') {
-                pagePreview.style.setProperty('--bg-size', '100% 100%');
-                pagePreview.style.setProperty('--bg-repeat', 'no-repeat');
+            } else if (mode === 'mode-classic-repeat') {
+                pagePreview.classList.add('mode-classic');
+                pagePreview.style.setProperty('--bg-size', 'contain');
+                pagePreview.style.setProperty('--bg-repeat', 'repeat');
             }
         });
 
-        // 5. Handle Image Upload & Removal
+        // Image Upload
         const inpTheme = document.getElementById('inpTheme');
         const btnRemove = document.getElementById('btnRemove');
         let currentImageUrl = null;
 
-        inpTheme.addEventListener('change', function(e) {
+        inpTheme.addEventListener('change', e => {
             const file = e.target.files[0];
             if (file) {
                 if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
                 currentImageUrl = URL.createObjectURL(file);
-                pagePreview.style.setProperty('--theme-bg', `url('${currentImageUrl}')`);
+                // Apply raw image variable for both engines to use
+                pagePreview.style.setProperty('--theme-bg-raw', `url('${currentImageUrl}')`);
                 btnRemove.style.display = 'block';
             }
         });
 
-        btnRemove.addEventListener('click', function() {
+        btnRemove.addEventListener('click', () => {
             inpTheme.value = '';
-            pagePreview.style.removeProperty('--theme-bg');
+            pagePreview.style.removeProperty('--theme-bg-raw');
             btnRemove.style.display = 'none';
-            if (currentImageUrl) {
-                URL.revokeObjectURL(currentImageUrl);
-                currentImageUrl = null;
-            }
+            if (currentImageUrl) { URL.revokeObjectURL(currentImageUrl); currentImageUrl = null; }
         });
     </script>
 </body>
