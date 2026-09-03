@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concept Notes Maker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary-color: #4CAF50;
@@ -11,6 +12,7 @@
             --text-light: #f8f9fa;
             --page-width: 210mm;
             --page-height: 297mm;
+            --paper-opacity: 1; /* Default solid white center */
         }
 
         /* Base Styles */
@@ -91,9 +93,7 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        textarea {
-            resize: vertical;
-        }
+        textarea { resize: vertical; }
         
         input[type="file"] {
             width: 100%;
@@ -124,14 +124,11 @@
             transform: translateY(-2px);
         }
 
-        .btn-remove {
-            background-color: #ff4757;
-            display: none;
+        .btn-download {
+            background-color: #ff9800; /* Orange download button */
+            font-size: 18px;
         }
-
-        .btn-remove:hover {
-            background-color: #ff6b81;
-        }
+        .btn-download:hover { background-color: #e68a00; }
 
         /* Preview Area */
         .preview-container {
@@ -153,21 +150,12 @@
         }
 
         .zoom-controls button {
-            width: auto;
-            margin: 0;
-            padding: 8px 15px;
-            background: #333;
-            font-size: 14px;
+            width: auto; margin: 0; padding: 8px 15px; background: #333; font-size: 14px;
         }
         .zoom-controls button:hover { background: #555; }
         
         .preview-scroll-area {
-            flex-grow: 1;
-            overflow: auto;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            flex-grow: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; align-items: flex-start;
         }
 
         /* The Page Layout */
@@ -186,96 +174,68 @@
             transition: transform 0.2s ease;
         }
 
-        /* --- BORDER ENGINE MODES --- */
+        /* --- BORDER ENGINES --- */
         
-        /* Mode 1: Classic Cover (Best for Textures) */
-        .page-preview.mode-classic {
+        /* FULL PHOTO MODE (Best for viewing people - relies on transparency slider) */
+        .page-preview.mode-full-photo {
             border: var(--border-thickness, 20mm) solid transparent;
-            background-image: linear-gradient(white, white), var(--theme-bg-raw, none);
+            
+            /* Top Layer is white paper (with adjustable opacity). Bottom Layer is the photo */
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, var(--paper-opacity)), rgba(255, 255, 255, var(--paper-opacity))), 
+                var(--theme-bg-raw, none);
+            
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
             background-size: auto, var(--bg-size, cover);
             background-position: center, center;
-            background-repeat: no-repeat, var(--bg-repeat, no-repeat);
+            background-repeat: no-repeat, no-repeat;
         }
 
-        /* Mode 2: Smart Slice (Best for Photos with People) */
+        /* SMART 9-SLICE (Best for textures/patterns, NOT for people) */
         .page-preview.mode-slice {
             border: var(--border-thickness, 20mm) solid transparent;
             border-image-source: var(--theme-bg-raw, none);
-            border-image-slice: var(--slice-depth, 25%);
+            border-image-slice: 25%;
             border-image-repeat: round;
-            background: white; 
+            background-color: rgba(255, 255, 255, var(--paper-opacity)); 
             background-clip: padding-box;
         }
 
         .header-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px;
         }
-
         .header-grid p { margin: 5px 0; font-size: 14px; }
+        
         .content-body {
-            text-align: justify;
-            font-size: 15px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        /* Print Settings */
-        @media print {
-            body { background: white; display: block; overflow: visible; }
-            .sidebar, .zoom-controls { display: none; }
-            .preview-scroll-area { padding: 0; display: block; overflow: visible; }
-            .page-preview {
-                transform: none !important;
-                box-shadow: none;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                page-break-after: always;
-            }
+            text-align: justify; font-size: 15px; line-height: 1.6; white-space: pre-wrap;
         }
     </style>
-    <style id="printStyle">@page { size: A4; margin: 0; }</style>
 </head>
 <body>
 
-    <!-- SIDEBAR -->
     <div class="sidebar">
         <h2>✨ Concept Notes Maker</h2>
         
-        <!-- Document Settings -->
         <div class="settings-card">
             <h3>📄 Document Settings</h3>
-            
-            <div class="form-group">
-                <label>Paper Size:</label>
+            <div class="form-group"><label>Paper Size:</label>
                 <select id="selSize">
                     <option value="A4">A4 (210 x 297 mm)</option>
                     <option value="Letter">Letter (8.5 x 11 in)</option>
                     <option value="Legal">Legal (8.5 x 14 in)</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>Font Style:</label>
+            <div class="form-group"><label>Font Style:</label>
                 <select id="selFont">
                     <option value="'Century Gothic', sans-serif">Century Gothic</option>
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
                     <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
-                    <option value="Impact, sans-serif">Impact</option>
-                    <option value="Papyrus, fantasy">Papyrus</option>
-                    <option value="'Brush Script MT', cursive">Brush Script MT</option>
                 </select>
             </div>
         </div>
 
-        <!-- Student Details -->
         <div class="settings-card">
             <h3>👤 Student Details</h3>
             <div class="form-group"><label>Name:</label><input type="text" id="inpName" placeholder="e.g. Myka L. Lascano"></div>
@@ -284,37 +244,47 @@
             <div class="form-group"><label>Concept Notes Number:</label><input type="text" id="inpNumber" placeholder="e.g. 01"></div>
         </div>
 
-        <!-- Content & Theme -->
         <div class="settings-card">
-            <h3>🎨 Content & Theme</h3>
-            <div class="form-group"><label>Content:</label><textarea id="inpContent" rows="6" placeholder="Type your notes here..."></textarea></div>
-            <div class="form-group"><label>Theme (Border Image):</label><input type="file" id="inpTheme" accept="image/*"></div>
+            <h3>🎨 Design & Content</h3>
+            <div class="form-group"><label>Content:</label><textarea id="inpContent" rows="4" placeholder="Type your notes here..."></textarea></div>
+            
+            <div class="form-group"><label>⭐ Pre-Made Themes:</label>
+                <select id="selPremade">
+                    <option value="none">None (Upload Custom Below)</option>
+                    <option value="gold">1. Gold Elegance</option>
+                    <option value="sunset">2. Pastel Sunset</option>
+                    <option value="nebula">3. Dark Nebula</option>
+                    <option value="blue">4. Blue Wave</option>
+                    <option value="stripes">5. Candy Stripes</option>
+                </select>
+            </div>
+
+            <div class="form-group"><label>Or Upload Photo:</label><input type="file" id="inpTheme" accept="image/*"></div>
 
             <div class="form-group">
                 <label>Border Engine:</label>
                 <select id="selBorderEngine">
-                    <option value="mode-slice">Smart 9-Slice (Best for Photos)</option>
-                    <option value="mode-classic-cover">Classic Cover (Fills entire background)</option>
-                    <option value="mode-classic-repeat">Classic Repeat (Tiles the image)</option>
+                    <option value="mode-full-photo">Full Photo Background (Best for People)</option>
+                    <option value="mode-slice">Smart 9-Slice (Best for Textures/Patterns)</option>
                 </select>
-                <small style="color:#ccc; display:block; margin-top:5px;">Smart 9-Slice extracts the edges of your photo and repeats them perfectly without covering the faces!</small>
             </div>
             
             <div class="form-group">
-                <label>Border Thickness: <span id="valThickness">20</span>mm</label>
-                <input type="range" id="inpThickness" min="5" max="50" value="20">
+                <label>Paper Opacity: <span id="valOpacity">100</span>%</label>
+                <input type="range" id="inpOpacity" min="20" max="100" value="100">
+                <small style="color:#ccc;">Lower this to make the white paper transparent so you can see the photo behind it!</small>
             </div>
 
-            <button id="btnRemove" class="btn-remove" type="button">Remove Photo</button>
+            <div class="form-group">
+                <label>Border Thickness: <span id="valThickness">20</span>mm</label>
+                <input type="range" id="inpThickness" min="5" max="60" value="20">
+            </div>
         </div>
 
-        <button onclick="window.print()">🖨️ Save as PDF / Print</button>
+        <button id="btnDownload" class="btn-download">⬇️ Download PDF Automatically</button>
     </div>
 
-    <!-- PREVIEW AREA -->
     <div class="preview-container">
-        
-        <!-- Zoom Controls -->
         <div class="zoom-controls">
             <span style="font-weight:bold;">Preview Zoom:</span>
             <button onclick="changeZoom(-0.1)">➖ Zoom Out</button>
@@ -323,10 +293,8 @@
             <button onclick="resetZoom()">Reset</button>
         </div>
 
-        <!-- Document Scroll Area -->
         <div class="preview-scroll-area">
-            <!-- Added mode-slice as default -->
-            <div class="page-preview mode-slice" id="pagePreview">
+            <div class="page-preview mode-full-photo" id="pagePreview">
                 <div class="header-grid">
                     <div>
                         <p><strong>Name:</strong> <span id="outName"></span></p>
@@ -342,7 +310,6 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT -->
     <script>
         const pagePreview = document.getElementById('pagePreview');
 
@@ -364,71 +331,91 @@
             zoomLabel.textContent = Math.round(currentZoom * 100) + '%';
         }
         function changeZoom(amount) {
-            currentZoom += amount;
-            if(currentZoom < 0.3) currentZoom = 0.3;
-            if(currentZoom > 2.5) currentZoom = 2.5;
+            currentZoom += amount; if(currentZoom < 0.3) currentZoom = 0.3; if(currentZoom > 2.5) currentZoom = 2.5;
             updateZoomUI();
         }
-        function resetZoom() {
-            currentZoom = 1.0;
-            updateZoomUI();
-        }
+        function resetZoom() { currentZoom = 1.0; updateZoomUI(); }
 
         // Paper Size & Fonts
         document.getElementById('selSize').addEventListener('change', e => {
             const v = e.target.value;
-            const printStyle = document.getElementById('printStyle');
-            if(v==='A4'){ pagePreview.style.setProperty('--page-width','210mm'); pagePreview.style.setProperty('--page-height','297mm'); printStyle.innerHTML='@page{size: A4; margin:0;}'; }
-            if(v==='Letter'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','11in'); printStyle.innerHTML='@page{size: letter; margin:0;}'; }
-            if(v==='Legal'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','14in'); printStyle.innerHTML='@page{size: legal; margin:0;}'; }
+            if(v==='A4'){ pagePreview.style.setProperty('--page-width','210mm'); pagePreview.style.setProperty('--page-height','297mm'); }
+            if(v==='Letter'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','11in'); }
+            if(v==='Legal'){ pagePreview.style.setProperty('--page-width','8.5in'); pagePreview.style.setProperty('--page-height','14in'); }
         });
         document.getElementById('selFont').addEventListener('change', e => pagePreview.style.fontFamily = e.target.value);
 
-        // Border Thickness Slider
+        // Sliders
         document.getElementById('inpThickness').addEventListener('input', e => {
             document.getElementById('valThickness').textContent = e.target.value;
             pagePreview.style.setProperty('--border-thickness', e.target.value + 'mm');
         });
+        
+        document.getElementById('inpOpacity').addEventListener('input', e => {
+            document.getElementById('valOpacity').textContent = e.target.value;
+            pagePreview.style.setProperty('--paper-opacity', e.target.value / 100);
+        });
 
         // Border Engine Switcher
         document.getElementById('selBorderEngine').addEventListener('change', e => {
-            const mode = e.target.value;
-            pagePreview.className = 'page-preview'; // reset classes
-            
-            if (mode === 'mode-slice') {
-                pagePreview.classList.add('mode-slice');
-            } else if (mode === 'mode-classic-cover') {
-                pagePreview.classList.add('mode-classic');
-                pagePreview.style.setProperty('--bg-size', 'cover');
-                pagePreview.style.setProperty('--bg-repeat', 'no-repeat');
-            } else if (mode === 'mode-classic-repeat') {
-                pagePreview.classList.add('mode-classic');
-                pagePreview.style.setProperty('--bg-size', 'contain');
-                pagePreview.style.setProperty('--bg-repeat', 'repeat');
+            pagePreview.className = 'page-preview ' + e.target.value;
+        });
+
+        // Pre-Made Themes Logic
+        const themes = {
+            gold: 'linear-gradient(45deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)',
+            sunset: 'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)',
+            nebula: 'radial-gradient(circle at top right, #1b2735 0%, #090a0f 100%)',
+            blue: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)',
+            stripes: 'repeating-linear-gradient(45deg, #ff9a9e, #ff9a9e 10px, #fecfef 10px, #fecfef 20px)'
+        };
+
+        document.getElementById('selPremade').addEventListener('change', e => {
+            const val = e.target.value;
+            document.getElementById('inpTheme').value = ''; // clear file input
+            if (val === 'none') {
+                pagePreview.style.removeProperty('--theme-bg-raw');
+            } else {
+                pagePreview.style.setProperty('--theme-bg-raw', themes[val]);
             }
         });
 
         // Image Upload
-        const inpTheme = document.getElementById('inpTheme');
-        const btnRemove = document.getElementById('btnRemove');
         let currentImageUrl = null;
-
-        inpTheme.addEventListener('change', e => {
+        document.getElementById('inpTheme').addEventListener('change', e => {
+            document.getElementById('selPremade').value = 'none'; // reset theme dropdown
             const file = e.target.files[0];
             if (file) {
                 if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
                 currentImageUrl = URL.createObjectURL(file);
-                // Apply raw image variable for both engines to use
                 pagePreview.style.setProperty('--theme-bg-raw', `url('${currentImageUrl}')`);
-                btnRemove.style.display = 'block';
             }
         });
 
-        btnRemove.addEventListener('click', () => {
-            inpTheme.value = '';
-            pagePreview.style.removeProperty('--theme-bg-raw');
-            btnRemove.style.display = 'none';
-            if (currentImageUrl) { URL.revokeObjectURL(currentImageUrl); currentImageUrl = null; }
+        // Automatic PDF Download using html2pdf
+        document.getElementById('btnDownload').addEventListener('click', () => {
+            const element = document.getElementById('pagePreview');
+            const originalTransform = element.style.transform;
+            
+            // Reset zoom so PDF generates properly
+            element.style.transform = 'scale(1)';
+            
+            // Determine size
+            let pFormat = document.getElementById('selSize').value.toLowerCase();
+            if(pFormat === 'legal') pFormat = [215.9, 355.6]; // jsPDF legal size mapping
+
+            const opt = {
+                margin:       0,
+                filename:     'Concept_Notes.pdf',
+                image:        { type: 'jpeg', quality: 1.0 },
+                html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+                jsPDF:        { unit: 'mm', format: pFormat, orientation: 'portrait' }
+            };
+            
+            // Generate and Download
+            html2pdf().set(opt).from(element).save().then(() => {
+                element.style.transform = originalTransform; // Restore zoom
+            });
         });
     </script>
 </body>
