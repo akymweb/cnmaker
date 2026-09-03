@@ -5,26 +5,135 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Concept Notes Maker</title>
     <style>
+        :root {
+            --primary-color: #4CAF50;
+            --sidebar-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            --text-light: #f8f9fa;
+            --page-width: 210mm;
+            --page-height: 297mm;
+        }
+
         /* Base Styles */
         body {
             font-family: 'Century Gothic', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f3f4f6;
+            background-color: #eef2f3;
+            background-image: radial-gradient(#d1dbe0 1px, transparent 1px);
+            background-size: 20px 20px;
             display: flex;
             height: 100vh;
+            color: #333;
         }
 
-        /* Split Screen Layout */
+        /* Modern Sidebar */
         .sidebar {
-            width: 350px;
-            background-color: #ffffff;
-            padding: 20px;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            width: 380px;
+            background: var(--sidebar-bg);
+            color: var(--text-light);
+            padding: 25px;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.2);
             overflow-y: auto;
             z-index: 10;
         }
 
+        .sidebar h2 {
+            text-align: center;
+            margin-top: 0;
+            font-size: 24px;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* Grouped Sections */
+        .settings-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .settings-card h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #ffeb3b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: #e0e0e0;
+        }
+
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-family: 'Century Gothic', sans-serif;
+            background-color: #fff;
+            color: #333;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+        
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 6px;
+            color: #333;
+        }
+
+        /* Buttons */
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .btn-remove {
+            background-color: #ff4757;
+            display: none;
+        }
+
+        .btn-remove:hover {
+            background-color: #ff6b81;
+        }
+
+        /* Preview Area */
         .preview-area {
             flex-grow: 1;
             display: flex;
@@ -34,88 +143,30 @@
             overflow-y: auto;
         }
 
-        h2 {
-            text-align: center;
-            color: #333;
-            margin-top: 0;
-        }
-
-        /* Form Inputs */
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-
-        input[type="text"], textarea, input[type="file"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-family: 'Century Gothic', sans-serif;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        /* Buttons */
-        button {
-            width: 100%;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-            font-family: 'Century Gothic', sans-serif;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .btn-remove {
-            background-color: #dc3545;
-            display: none; /* Hidden by default until a photo is uploaded */
-        }
-
-        .btn-remove:hover {
-            background-color: #c82333;
-        }
-
-        /* A4 Page Layout */
-        .a4-page {
-            width: 210mm;
-            min-height: 297mm; /* Standard A4 Size */
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        /* The Page Layout */
+        .page-preview {
+            width: var(--page-width);
+            min-height: var(--page-height);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             box-sizing: border-box;
             position: relative;
+            background-color: white;
             
-            /* BORDER LOGIC */
-            border: 20mm solid transparent; /* Creates the space for the border image */
-            padding: 10mm; /* Gives the text breathing room from the border */
+            /* Dynamic Font Applied Here */
+            font-family: 'Century Gothic', sans-serif;
             
-            /* Layer 1 (Top): Solid white center. Layer 2 (Bottom): Uploaded theme */
+            /* Border Logic */
+            border: 20mm solid transparent;
+            padding: 10mm;
+            
             background-image: linear-gradient(white, white), var(--theme-bg, none);
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
             
-            /* SMART RENDERING: 'cover' keeps aspect ratio, 'center' prevents awkward cropping */
-            background-size: auto, cover; 
+            /* These variables are controlled by the "Border Style" dropdown */
+            background-size: auto, var(--bg-size, contain); 
             background-position: center, center; 
-            background-repeat: no-repeat;
-            
-            /* Fallback color if no image is loaded */
-            background-color: white; 
+            background-repeat: no-repeat, var(--bg-repeat, repeat); 
         }
 
         .header-grid {
@@ -139,76 +190,149 @@
             white-space: pre-wrap;
         }
 
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
         /* Print Settings */
         @media print {
             body {
                 background-color: white;
+                background-image: none;
                 display: block;
             }
-            .sidebar {
-                display: none;
-            }
+            .sidebar { display: none; }
             .preview-area {
                 padding: 0;
                 display: block;
             }
-            .a4-page {
+            .page-preview {
                 box-shadow: none;
-                width: 210mm;
-                height: 297mm;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 page-break-after: always;
             }
-            @page {
-                size: A4;
-                margin: 0;
-            }
         }
+    </style>
+    <style id="printStyle">
+        @page { size: A4; margin: 0; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>Concept Notes Maker</h2>
+        <h2>✨ Concept Notes Maker</h2>
         
-        <div class="form-group">
-            <label>Name:</label>
-            <input type="text" id="inpName" placeholder="e.g. Myka L. Lascano">
+        <div class="settings-card">
+            <h3>📄 Document Settings</h3>
+            
+            <div class="form-group">
+                <label>Paper Size:</label>
+                <select id="selSize">
+                    <option value="A4">A4 (210 x 297 mm)</option>
+                    <option value="Letter">Letter (8.5 x 11 in)</option>
+                    <option value="Legal">Legal (8.5 x 14 in)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Font Style:</label>
+                <select id="selFont">
+                    <option value="'Century Gothic', sans-serif">Century Gothic</option>
+                    <option value="Arial, sans-serif">Arial</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Tahoma, sans-serif">Tahoma</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Garamond, serif">Garamond</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                    <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                    <option value="Impact, sans-serif">Impact</option>
+                    <option value="'Lucida Sans Unicode', sans-serif">Lucida Sans Unicode</option>
+                    <option value="Calibri, sans-serif">Calibri</option>
+                    <option value="Cambria, serif">Cambria</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                    <option value="'Palatino Linotype', serif">Palatino</option>
+                    <option value="'Book Antiqua', serif">Book Antiqua</option>
+                    <option value="'Arial Black', sans-serif">Arial Black</option>
+                    <option value="'Franklin Gothic Medium', sans-serif">Franklin Gothic</option>
+                    <option value="Consolas, monospace">Consolas</option>
+                    <option value="Monaco, monospace">Monaco</option>
+                    <option value="Optima, sans-serif">Optima</option>
+                    <option value="Didot, serif">Didot</option>
+                    <option value="Copperplate, fantasy">Copperplate</option>
+                    <option value="Papyrus, fantasy">Papyrus</option>
+                    <option value="'Brush Script MT', cursive">Brush Script MT</option>
+                </select>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Grade and Section:</label>
-            <input type="text" id="inpSection" placeholder="e.g. 12 STEM 1A">
+        <div class="settings-card">
+            <h3>👤 Student Details</h3>
+            
+            <div class="form-group">
+                <label>Name:</label>
+                <input type="text" id="inpName" placeholder="e.g. Myka L. Lascano">
+            </div>
+
+            <div class="form-group">
+                <label>Grade and Section:</label>
+                <input type="text" id="inpSection" placeholder="e.g. 12 STEM 1A">
+            </div>
+
+            <div class="form-group">
+                <label>Teacher:</label>
+                <input type="text" id="inpTeacher" placeholder="e.g. Ms. Myka L. Lascano">
+            </div>
+
+            <div class="form-group">
+                <label>Concept Notes Number:</label>
+                <input type="text" id="inpNumber" placeholder="e.g. 01">
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Teacher:</label>
-            <input type="text" id="inpTeacher" placeholder="e.g. Ms. Myka L. Lascano">
-        </div>
+        <div class="settings-card">
+            <h3>🎨 Content & Theme</h3>
+            
+            <div class="form-group">
+                <label>Content:</label>
+                <textarea id="inpContent" rows="8" placeholder="Type your notes here..."></textarea>
+            </div>
 
-        <div class="form-group">
-            <label>Concept Notes Number:</label>
-            <input type="text" id="inpNumber" placeholder="e.g. 01">
-        </div>
+            <div class="form-group">
+                <label>Theme (Border Image):</label>
+                <input type="file" id="inpTheme" accept="image/*">
+            </div>
 
-        <div class="form-group">
-            <label>Content:</label>
-            <textarea id="inpContent" rows="12" placeholder="Type your notes here..."></textarea>
-        </div>
+            <div class="form-group">
+                <label>Border Style:</label>
+                <select id="selBorderStyle">
+                    <option value="repeat">Smart Repeat (Tiles - Best for photos)</option>
+                    <option value="cover">Cover (Fills - May crop edges)</option>
+                    <option value="stretch">Stretch (Fits exactly - May distort)</option>
+                </select>
+            </div>
 
-        <div class="form-group">
-            <label>Theme (Border Image):</label>
-            <input type="file" id="inpTheme" accept="image/*">
             <button id="btnRemove" class="btn-remove" type="button">Remove Photo</button>
-            <small style="color:#666; display:block; margin-top:5px;">Upload a full photo. The app will smartly crop it to fit as a border without stretching.</small>
         </div>
 
-        <button onclick="window.print()">Save as PDF / Print</button>
+        <button onclick="window.print()">🖨️ Save as PDF / Print</button>
     </div>
 
     <div class="preview-area">
-        <div class="a4-page" id="pagePreview">
+        <div class="page-preview" id="pagePreview">
             
             <div class="header-grid">
                 <div>
@@ -227,56 +351,79 @@
     </div>
 
     <script>
-        // Update Text Fields in Real Time
+        // 1. Live Text Binding
         const bindInput = (inputId, outputId) => {
             document.getElementById(inputId).addEventListener('input', function(e) {
                 document.getElementById(outputId).textContent = e.target.value;
             });
         };
-
         bindInput('inpName', 'outName');
         bindInput('inpSection', 'outSection');
         bindInput('inpTeacher', 'outTeacher');
         bindInput('inpNumber', 'outNumber');
         bindInput('inpContent', 'outContent');
 
-        // Handle Image Upload (Smart & Fast for Large Files)
+        const pagePreview = document.getElementById('pagePreview');
+
+        // 2. Handle Paper Size
+        document.getElementById('selSize').addEventListener('change', function(e) {
+            const size = e.target.value;
+            const printStyle = document.getElementById('printStyle');
+            
+            if (size === 'A4') {
+                pagePreview.style.setProperty('--page-width', '210mm');
+                pagePreview.style.setProperty('--page-height', '297mm');
+                printStyle.innerHTML = '@page { size: A4; margin: 0; }';
+            } else if (size === 'Letter') {
+                pagePreview.style.setProperty('--page-width', '8.5in');
+                pagePreview.style.setProperty('--page-height', '11in');
+                printStyle.innerHTML = '@page { size: letter; margin: 0; }';
+            } else if (size === 'Legal') {
+                pagePreview.style.setProperty('--page-width', '8.5in');
+                pagePreview.style.setProperty('--page-height', '14in');
+                printStyle.innerHTML = '@page { size: legal; margin: 0; }';
+            }
+        });
+
+        // 3. Handle Fonts
+        document.getElementById('selFont').addEventListener('change', function(e) {
+            pagePreview.style.fontFamily = e.target.value;
+        });
+
+        // 4. Handle Border Style (Fix for Distortion)
+        document.getElementById('selBorderStyle').addEventListener('change', function(e) {
+            const style = e.target.value;
+            if (style === 'repeat') {
+                pagePreview.style.setProperty('--bg-size', 'contain');
+                pagePreview.style.setProperty('--bg-repeat', 'repeat');
+            } else if (style === 'cover') {
+                pagePreview.style.setProperty('--bg-size', 'cover');
+                pagePreview.style.setProperty('--bg-repeat', 'no-repeat');
+            } else if (style === 'stretch') {
+                pagePreview.style.setProperty('--bg-size', '100% 100%');
+                pagePreview.style.setProperty('--bg-repeat', 'no-repeat');
+            }
+        });
+
+        // 5. Handle Image Upload & Removal
         const inpTheme = document.getElementById('inpTheme');
         const btnRemove = document.getElementById('btnRemove');
-        const pagePreview = document.getElementById('pagePreview');
         let currentImageUrl = null;
 
         inpTheme.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
-                // Clear old memory if an image was already uploaded
-                if (currentImageUrl) {
-                    URL.revokeObjectURL(currentImageUrl);
-                }
-                
-                // Create a fast local URL for the image (Supports very large MB sizes)
+                if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
                 currentImageUrl = URL.createObjectURL(file);
-                
-                // Apply to the border
                 pagePreview.style.setProperty('--theme-bg', `url('${currentImageUrl}')`);
-                
-                // Show the remove button
                 btnRemove.style.display = 'block';
             }
         });
 
-        // Handle Remove Photo Button
         btnRemove.addEventListener('click', function() {
-            // Reset input file
             inpTheme.value = '';
-            
-            // Remove CSS variable
             pagePreview.style.removeProperty('--theme-bg');
-            
-            // Hide button
             btnRemove.style.display = 'none';
-            
-            // Free up browser memory
             if (currentImageUrl) {
                 URL.revokeObjectURL(currentImageUrl);
                 currentImageUrl = null;
