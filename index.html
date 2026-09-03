@@ -13,27 +13,36 @@
             --paper-opacity: 1; 
             --tile-size: 80px; 
             
-            /* Light Mode Variables */
-            --sidebar-bg: rgba(255, 255, 255, 0.9);
+            /* Light Mode Variables (Glassmorphism) */
+            --sidebar-bg: rgba(255, 255, 255, 0.25);
             --sidebar-text: #333;
-            --card-bg: rgba(0, 0, 0, 0.05);
-            --card-border: rgba(0, 0, 0, 0.1);
-            --input-bg: #fff;
+            --card-bg: rgba(255, 255, 255, 0.4);
+            --card-border: rgba(255, 255, 255, 0.5);
+            --input-bg: rgba(255, 255, 255, 0.7);
             --input-text: #333;
-            --label-color: #555;
+            --label-color: #444;
             --title-border: rgba(0,0,0,0.1);
         }
 
-        /* Dark Mode Variables */
+        /* Dark Mode Variables (Glassmorphism) */
         [data-theme="dark"] {
-            --sidebar-bg: rgba(20, 24, 36, 0.95);
+            --sidebar-bg: rgba(20, 24, 36, 0.4);
             --sidebar-text: #f8f9fa;
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --card-border: rgba(255, 255, 255, 0.15);
-            --input-bg: #2c3140;
+            --card-bg: rgba(0, 0, 0, 0.3);
+            --card-border: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.5);
             --input-text: #fff;
             --label-color: #e0e0e0;
             --title-border: rgba(255,255,255,0.2);
+        }
+
+        /* Hide Scrollbars Globally but keep functionality */
+        *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari and Opera */
+        }
+        * {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
 
         /* Moving Gradient Background */
@@ -70,7 +79,9 @@
             box-shadow: 4px 0 25px rgba(0,0,0,0.2);
             overflow-y: auto;
             z-index: 10;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(15px); /* Increased blur for better glass effect */
+            -webkit-backdrop-filter: blur(15px);
+            border-right: 1px solid var(--card-border);
             transition: background 0.3s ease, color 0.3s ease;
         }
 
@@ -95,11 +106,30 @@
         /* Form Inputs */
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: var(--label-color); }
+        
         input[type="text"], textarea, select, input[type="range"] {
             width: 100%; padding: 10px; border: 1px solid var(--card-border); border-radius: 6px; box-sizing: border-box;
             font-family: 'Century Gothic', sans-serif; background-color: var(--input-bg); color: var(--input-text);
-            transition: background 0.3s ease, color 0.3s ease;
+            transition: background 0.3s ease, color 0.3s ease; outline: none;
         }
+        
+        /* Thematic Dropdowns */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            /* Light mode custom arrow */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+        }
+        
+        [data-theme="dark"] select {
+            /* Dark mode custom arrow */
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%23fff" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+        }
+
         textarea { resize: vertical; }
         input[type="file"] { width: 100%; padding: 8px; background: var(--input-bg); border-radius: 6px; color: var(--input-text); border: 1px solid var(--card-border); }
 
@@ -125,10 +155,11 @@
         .zoom-controls {
             background: var(--sidebar-bg); padding: 10px 20px; display: flex; justify-content: center; gap: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 5; align-items: center; color: var(--sidebar-text);
-            backdrop-filter: blur(10px); transition: background 0.3s ease;
+            backdrop-filter: blur(15px); transition: background 0.3s ease; border-bottom: 1px solid var(--card-border);
         }
         .zoom-controls button { width: auto; margin: 0; padding: 8px 15px; background: var(--primary-color); font-size: 14px; }
         .zoom-controls button:hover { background: #45a049; }
+        
         .preview-scroll-area { flex-grow: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; align-items: flex-start; }
 
         /* The Page Layout */
