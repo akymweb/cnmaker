@@ -14,35 +14,35 @@
             --tile-size: 80px; 
             --border-thickness: 20mm;
             
-            /* UI Variables (Glassmorphism) */
-            --sidebar-bg: rgba(20, 25, 40, 0.7);
-            --sidebar-text: #fff;
-            --card-bg: rgba(255, 255, 255, 0.1);
-            --card-border: rgba(255, 255, 255, 0.2);
-            --input-bg: rgba(255, 255, 255, 0.9);
+            /* Glassmorphism Variables for Maximum Transparency */
+            --sidebar-bg: rgba(255, 255, 255, 0.15); /* Very transparent */
+            --sidebar-text: #222;
+            --card-bg: rgba(255, 255, 255, 0.25);
+            --card-border: rgba(255, 255, 255, 0.4);
+            --input-bg: rgba(255, 255, 255, 0.6);
             --input-text: #222;
-            --label-color: #eee;
-            --title-border: rgba(255,255,255,0.3);
+            --label-color: #444;
+            --title-border: rgba(0,0,0,0.1);
         }
 
         /* Hide Scrollbars Globally */
         *::-webkit-scrollbar { display: none; }
         * { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* The Animated Floating Orbs Background (MADAMI!) */
+        /* The Animated Floating Orbs Background (BRIGHT & MADAMI!) */
         body {
             font-family: 'Century Gothic', sans-serif; margin: 0; padding: 0; display: flex; height: 100vh; overflow: hidden;
-            background-color: #0d0d1a;
+            background-color: #e6f0fa; /* Light airy base */
             background-image: 
-                radial-gradient(circle at 15% 20%, rgba(90, 20, 100, 0.7) 0%, transparent 25%),
-                radial-gradient(circle at 85% 10%, rgba(20, 50, 120, 0.7) 0%, transparent 25%),
-                radial-gradient(circle at 50% 50%, rgba(100, 20, 20, 0.6) 0%, transparent 35%),
-                radial-gradient(circle at 75% 80%, rgba(20, 90, 80, 0.7) 0%, transparent 30%),
-                radial-gradient(circle at 10% 85%, rgba(120, 80, 20, 0.6) 0%, transparent 30%),
-                radial-gradient(circle at 40% 10%, rgba(60, 20, 120, 0.6) 0%, transparent 25%),
-                radial-gradient(circle at 90% 50%, rgba(120, 20, 60, 0.6) 0%, transparent 30%);
+                radial-gradient(circle at 15% 20%, rgba(255, 105, 180, 0.5) 0%, transparent 35%),
+                radial-gradient(circle at 85% 10%, rgba(0, 191, 255, 0.5) 0%, transparent 35%),
+                radial-gradient(circle at 50% 50%, rgba(255, 215, 0, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 75% 80%, rgba(50, 205, 50, 0.4) 0%, transparent 35%),
+                radial-gradient(circle at 10% 85%, rgba(148, 0, 211, 0.5) 0%, transparent 40%),
+                radial-gradient(circle at 40% 10%, rgba(255, 69, 0, 0.4) 0%, transparent 30%),
+                radial-gradient(circle at 90% 50%, rgba(0, 250, 154, 0.5) 0%, transparent 35%);
             background-size: 200% 200%;
-            animation: moveOrbs 18s ease-in-out infinite alternate;
+            animation: moveOrbs 15s ease-in-out infinite alternate;
         }
 
         @keyframes moveOrbs {
@@ -52,7 +52,22 @@
             100% { background-position: 0% 0%; }
         }
 
-        /* Mobile Menu Button (Hidden on Desktop) */
+        /* Loading Overlay */
+        .loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px);
+            z-index: 9999; display: none; flex-direction: column;
+            justify-content: center; align-items: center; 
+            font-size: 22px; font-weight: bold; color: #333;
+        }
+        .spinner {
+            border: 8px solid #e0e0e0; border-top: 8px solid var(--primary-color);
+            border-radius: 50%; width: 70px; height: 70px; 
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mobile Menu Button */
         .mobile-toggle {
             display: none; position: fixed; top: 15px; left: 15px; z-index: 1000;
             background: var(--primary-color); color: white; border: none;
@@ -60,11 +75,11 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Modern Sidebar */
+        /* Modern Sidebar (Highly Transparent) */
         .sidebar {
             width: 380px; background: var(--sidebar-bg); color: var(--sidebar-text); padding: 25px;
-            box-shadow: 4px 0 25px rgba(0,0,0,0.4); overflow-y: auto; z-index: 100;
-            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.1); overflow-y: auto; z-index: 100;
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             border-right: 1px solid var(--card-border); transition: transform 0.3s ease;
         }
 
@@ -77,7 +92,7 @@
             background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 20px;
             border: 1px solid var(--card-border);
         }
-        .settings-card h3 { margin-top: 0; font-size: 16px; color: #ffb74d; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .settings-card h3 { margin-top: 0; font-size: 16px; color: #ff9800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
         .form-group { margin-bottom: 12px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: var(--label-color); }
@@ -100,7 +115,7 @@
         button {
             width: 100%; padding: 12px; background-color: var(--primary-color); color: white; border: none;
             border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
-            transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         button:hover { background-color: #45a049; transform: translateY(-2px); }
         .btn-download { background-color: #ff9800; font-size: 18px; }
@@ -109,8 +124,8 @@
         /* Preview Area */
         .preview-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
         .zoom-controls {
-            background: rgba(20, 25, 40, 0.7); padding: 10px 20px; display: flex; justify-content: center; gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 5; align-items: center; color: #fff;
+            background: rgba(255, 255, 255, 0.3); padding: 10px 20px; display: flex; justify-content: center; gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); z-index: 5; align-items: center; color: #222;
             backdrop-filter: blur(15px); border-bottom: 1px solid var(--card-border);
         }
         .zoom-controls button { width: auto; margin: 0; padding: 8px 15px; background: var(--primary-color); font-size: 14px; }
@@ -157,6 +172,11 @@
     </style>
 </head>
 <body>
+
+    <div id="loadingOverlay" class="loader-overlay">
+        <div class="spinner"></div>
+        <p>Creating your PDF...</p>
+    </div>
 
     <button class="mobile-toggle" id="btnMobileMenu">☰ Menu</button>
 
@@ -417,22 +437,30 @@
         }
 
         // ========================================================
-        // BULLETPROOF PDF DOWNLOAD FIX
+        // THE BULLETPROOF PDF DOWNLOAD FIX
         // ========================================================
-        document.getElementById('btnDownload').addEventListener('click', () => {
-            const scrollArea = document.getElementById('scrollArea');
-            const originalTransform = docContainer.style.transform;
-            const originalGap = docContainer.style.gap;
+        document.getElementById('btnDownload').addEventListener('click', async () => {
+            const loader = document.getElementById('loadingOverlay');
+            loader.style.display = 'flex'; // Turn on loading screen
+
+            // Give the browser a split second to display the loading screen before freezing to calculate the PDF
+            await new Promise(resolve => setTimeout(resolve, 150)); 
+
+            // Create an absolute clone of the document container. 
+            // This prevents html2canvas from being clipped by scrollbars or flexbox layouts!
+            const originalContainer = document.getElementById('document-container');
+            const clone = originalContainer.cloneNode(true);
             
-            // To prevent blank pages in html2pdf, we MUST temporarily disable 
-            // `overflow: hidden` on the body and scroll area. The camera gets confused otherwise.
-            document.body.style.overflow = 'visible';
-            scrollArea.style.overflow = 'visible';
-            scrollArea.style.padding = '0';
+            // Apply variables directly to clone so it remembers sizes and themes
+            clone.style.cssText = originalContainer.style.cssText;
+            clone.style.position = 'absolute';
+            clone.style.top = '0';
+            clone.style.left = '0';
+            clone.style.zIndex = '-9999'; // Hide it behind everything
+            clone.style.transform = 'none'; // CRITICAL: Remove zoom!
+            clone.style.gap = '0'; // Remove spacing between pages
             
-            // Reset zoom to 100% and remove gap between pages
-            docContainer.style.transform = 'none'; 
-            docContainer.style.gap = '0';
+            document.body.appendChild(clone);
             
             let pFormat = document.getElementById('selSize').value.toLowerCase();
             if(pFormat === 'legal') pFormat = [215.9, 355.6]; 
@@ -441,26 +469,36 @@
                 margin:       0,
                 filename:     'Concept_Notes.pdf',
                 image:        { type: 'jpeg', quality: 1.0 },
-                html2canvas:  { scale: 2, useCORS: true, scrollY: 0, windowWidth: document.documentElement.offsetWidth },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0, 
+                    scrollX: 0, 
+                    windowWidth: clone.scrollWidth,
+                    windowHeight: clone.scrollHeight
+                },
                 jsPDF:        { unit: 'mm', format: pFormat, orientation: 'portrait' },
                 pagebreak:    { mode: 'css', elements: '.page-preview' } 
             };
             
-            html2pdf().set(opt).from(docContainer).save().then(() => {
-                // Restore all settings back to normal!
-                document.body.style.overflow = 'hidden';
-                scrollArea.style.overflow = 'auto';
-                scrollArea.style.padding = '40px';
-                docContainer.style.transform = originalTransform; 
-                docContainer.style.gap = '40px';
+            try {
+                // Generate PDF from the isolated clone
+                await html2pdf().set(opt).from(clone).save();
+            } catch(e) {
+                console.error("PDF generation failed", e);
+            } finally {
+                // Cleanup phase
+                document.body.removeChild(clone);
+                loader.style.display = 'none'; // Turn off loading screen
                 
-                // Close sidebar on mobile after clicking download to show the preview
+                // Hide mobile menu so user can see their preview again
                 if(window.innerWidth <= 768) {
                     sidebar.classList.remove('active');
                 }
-            });
+            }
         });
 
+        // Init
         updateGlobalVariables();
         renderPages();
     </script>
