@@ -8,71 +8,100 @@
     <style>
         :root {
             --primary-color: #4CAF50;
-            --sidebar-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            --text-light: #f8f9fa;
             --page-width: 210mm;
             --page-height: 297mm;
             --paper-opacity: 1; 
-            --tile-size: 80px; /* Default size for the mini repeating images */
+            --tile-size: 80px; 
+            
+            /* Light Mode Variables */
+            --sidebar-bg: rgba(255, 255, 255, 0.9);
+            --sidebar-text: #333;
+            --card-bg: rgba(0, 0, 0, 0.05);
+            --card-border: rgba(0, 0, 0, 0.1);
+            --input-bg: #fff;
+            --input-text: #333;
+            --label-color: #555;
+            --title-border: rgba(0,0,0,0.1);
         }
 
-        /* Base Styles */
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --sidebar-bg: rgba(20, 24, 36, 0.95);
+            --sidebar-text: #f8f9fa;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --input-bg: #2c3140;
+            --input-text: #fff;
+            --label-color: #e0e0e0;
+            --title-border: rgba(255,255,255,0.2);
+        }
+
+        /* Moving Gradient Background */
         body {
             font-family: 'Century Gothic', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #eef2f3;
-            background-image: radial-gradient(#d1dbe0 1px, transparent 1px);
-            background-size: 20px 20px;
             display: flex;
             height: 100vh;
-            color: #333;
             overflow: hidden;
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        [data-theme="dark"] body {
+            background: linear-gradient(-45deg, #141e30, #243b55, #0f2027, #203a43);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         /* Modern Sidebar */
         .sidebar {
             width: 380px;
             background: var(--sidebar-bg);
-            color: var(--text-light);
+            color: var(--sidebar-text);
             padding: 25px;
-            box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+            box-shadow: 4px 0 25px rgba(0,0,0,0.2);
             overflow-y: auto;
             z-index: 10;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         .sidebar h2 {
-            text-align: center;
-            margin-top: 0;
-            font-size: 24px;
-            border-bottom: 2px solid rgba(255,255,255,0.2);
-            padding-bottom: 15px;
-            margin-bottom: 25px;
+            text-align: center; margin-top: 0; font-size: 24px;
+            border-bottom: 2px solid var(--title-border);
+            padding-bottom: 15px; margin-bottom: 20px;
         }
 
         /* Grouped Sections */
         .settings-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: var(--card-bg);
+            border-radius: 10px; padding: 15px; margin-bottom: 20px;
+            border: 1px solid var(--card-border);
+            transition: background 0.3s ease;
         }
 
         .settings-card h3 {
-            margin-top: 0; font-size: 16px; color: #ffeb3b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;
+            margin-top: 0; font-size: 16px; color: #ff9800; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;
         }
 
         /* Form Inputs */
         .form-group { margin-bottom: 12px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #e0e0e0; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 13px; color: var(--label-color); }
         input[type="text"], textarea, select, input[type="range"] {
-            width: 100%; padding: 10px; border: none; border-radius: 6px; box-sizing: border-box;
-            font-family: 'Century Gothic', sans-serif; background-color: #fff; color: #333;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%; padding: 10px; border: 1px solid var(--card-border); border-radius: 6px; box-sizing: border-box;
+            font-family: 'Century Gothic', sans-serif; background-color: var(--input-bg); color: var(--input-text);
+            transition: background 0.3s ease, color 0.3s ease;
         }
         textarea { resize: vertical; }
-        input[type="file"] { width: 100%; padding: 8px; background: rgba(255,255,255,0.9); border-radius: 6px; color: #333; }
+        input[type="file"] { width: 100%; padding: 8px; background: var(--input-bg); border-radius: 6px; color: var(--input-text); border: 1px solid var(--card-border); }
 
         /* Buttons */
         button {
@@ -81,27 +110,36 @@
             transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
         button:hover { background-color: #45a049; transform: translateY(-2px); }
+        
         .btn-download { background-color: #ff9800; font-size: 18px; }
         .btn-download:hover { background-color: #e68a00; }
+        
+        .btn-remove { background-color: #ff4757; display: none; margin-bottom: 10px; }
+        .btn-remove:hover { background-color: #ff6b81; }
+
+        .btn-theme-toggle { background-color: #333; margin-bottom: 25px; }
+        [data-theme="dark"] .btn-theme-toggle { background-color: #f8f9fa; color: #333; }
 
         /* Preview Area */
         .preview-container { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
         .zoom-controls {
-            background: #fff; padding: 10px 20px; display: flex; justify-content: center; gap: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 5; align-items: center;
+            background: var(--sidebar-bg); padding: 10px 20px; display: flex; justify-content: center; gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 5; align-items: center; color: var(--sidebar-text);
+            backdrop-filter: blur(10px); transition: background 0.3s ease;
         }
-        .zoom-controls button { width: auto; margin: 0; padding: 8px 15px; background: #333; font-size: 14px; }
-        .zoom-controls button:hover { background: #555; }
+        .zoom-controls button { width: auto; margin: 0; padding: 8px 15px; background: var(--primary-color); font-size: 14px; }
+        .zoom-controls button:hover { background: #45a049; }
         .preview-scroll-area { flex-grow: 1; overflow: auto; padding: 40px; display: flex; justify-content: center; align-items: flex-start; }
 
         /* The Page Layout */
         .page-preview {
             width: var(--page-width);
             min-height: var(--page-height);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
             box-sizing: border-box;
             position: relative;
             background-color: white;
+            color: #333; /* Text on paper is always dark */
             font-family: 'Century Gothic', sans-serif;
             padding: 10mm;
             transform-origin: top center;
@@ -109,8 +147,6 @@
         }
 
         /* --- BORDER ENGINES --- */
-        
-        /* 1. MINI TILES (Repeats complete small image in the border) */
         .page-preview.mode-mini-tiles {
             border: var(--border-thickness, 20mm) solid transparent;
             background-image: 
@@ -118,12 +154,11 @@
                 var(--theme-bg-raw, none);
             background-origin: padding-box, border-box;
             background-clip: padding-box, border-box;
-            background-size: auto, var(--tile-size) auto; /* Shrinks the image so the whole thing fits */
+            background-size: auto, var(--tile-size) auto; 
             background-position: center, top left;
-            background-repeat: no-repeat, repeat; /* Repeats the mini image */
+            background-repeat: no-repeat, repeat; 
         }
 
-        /* 2. FULL PHOTO (Covers entire background) */
         .page-preview.mode-full-photo {
             border: var(--border-thickness, 20mm) solid transparent;
             background-image: 
@@ -136,7 +171,6 @@
             background-repeat: no-repeat, no-repeat;
         }
 
-        /* 3. SMART 9-SLICE (Best for textures/patterns) */
         .page-preview.mode-slice {
             border: var(--border-thickness, 20mm) solid transparent;
             border-image-source: var(--theme-bg-raw, none);
@@ -151,11 +185,13 @@
         .content-body { text-align: justify; font-size: 15px; line-height: 1.6; white-space: pre-wrap; }
     </style>
 </head>
-<body>
+<body data-theme="light">
 
     <div class="sidebar">
         <h2>✨ Concept Notes Maker</h2>
         
+        <button id="btnToggleTheme" class="btn-theme-toggle">🌙 Switch to Dark Mode</button>
+
         <div class="settings-card">
             <h3>📄 Document Settings</h3>
             <div class="form-group"><label>Paper Size:</label>
@@ -170,7 +206,29 @@
                     <option value="'Century Gothic', sans-serif">Century Gothic</option>
                     <option value="Arial, sans-serif">Arial</option>
                     <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="Verdana, sans-serif">Verdana</option>
+                    <option value="Tahoma, sans-serif">Tahoma</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                    <option value="Georgia, serif">Georgia</option>
+                    <option value="Garamond, serif">Garamond</option>
+                    <option value="'Courier New', monospace">Courier New</option>
                     <option value="'Comic Sans MS', cursive">Comic Sans MS</option>
+                    <option value="Impact, sans-serif">Impact</option>
+                    <option value="'Lucida Sans Unicode', sans-serif">Lucida Sans Unicode</option>
+                    <option value="Calibri, sans-serif">Calibri</option>
+                    <option value="Cambria, serif">Cambria</option>
+                    <option value="Helvetica, sans-serif">Helvetica</option>
+                    <option value="'Palatino Linotype', serif">Palatino</option>
+                    <option value="'Book Antiqua', serif">Book Antiqua</option>
+                    <option value="'Arial Black', sans-serif">Arial Black</option>
+                    <option value="'Franklin Gothic Medium', sans-serif">Franklin Gothic</option>
+                    <option value="Consolas, monospace">Consolas</option>
+                    <option value="Monaco, monospace">Monaco</option>
+                    <option value="Optima, sans-serif">Optima</option>
+                    <option value="Didot, serif">Didot</option>
+                    <option value="Copperplate, fantasy">Copperplate</option>
+                    <option value="Papyrus, fantasy">Papyrus</option>
+                    <option value="'Brush Script MT', cursive">Brush Script MT</option>
                 </select>
             </div>
         </div>
@@ -187,18 +245,20 @@
             <h3>🎨 Design & Content</h3>
             <div class="form-group"><label>Content:</label><textarea id="inpContent" rows="4" placeholder="Type your notes here..."></textarea></div>
             
-            <div class="form-group"><label>⭐ Awesome Pre-Made Themes:</label>
+            <div class="form-group"><label>⭐ Simple Pre-Made Themes:</label>
                 <select id="selPremade">
                     <option value="none">None (Upload Custom Below)</option>
-                    <option value="fire">🔥 Raging Fire</option>
-                    <option value="flowers">🌸 Beautiful Flowers</option>
-                    <option value="galaxy">🌌 Deep Galaxy</option>
-                    <option value="ocean">🌊 Ocean Waves</option>
-                    <option value="neon">⚡ Neon Cyberpunk</option>
+                    <option value="gold">1. Gold Elegance</option>
+                    <option value="sunset">2. Pastel Sunset</option>
+                    <option value="nebula">3. Dark Nebula</option>
+                    <option value="blue">4. Blue Wave</option>
+                    <option value="stripes">5. Candy Stripes</option>
                 </select>
             </div>
 
             <div class="form-group"><label>Or Upload Photo:</label><input type="file" id="inpTheme" accept="image/*"></div>
+            
+            <button id="btnRemove" class="btn-remove" type="button">🗑️ Remove Photo / Theme</button>
 
             <div class="form-group">
                 <label>Border Engine:</label>
@@ -225,7 +285,7 @@
             </div>
         </div>
 
-        <button id="btnDownload" class="btn-download">⬇️ Download PDF Automatically</button>
+        <button id="btnDownload" class="btn-download">⬇️ Download PDF</button>
     </div>
 
     <div class="preview-container">
@@ -256,6 +316,19 @@
 
     <script>
         const pagePreview = document.getElementById('pagePreview');
+
+        // Dark/Light Mode Toggle
+        const body = document.body;
+        const btnToggleTheme = document.getElementById('btnToggleTheme');
+        btnToggleTheme.addEventListener('click', () => {
+            if (body.getAttribute('data-theme') === 'light') {
+                body.setAttribute('data-theme', 'dark');
+                btnToggleTheme.innerHTML = '☀️ Switch to Light Mode';
+            } else {
+                body.setAttribute('data-theme', 'light');
+                btnToggleTheme.innerHTML = '🌙 Switch to Dark Mode';
+            }
+        });
 
         // Live Text
         const bindInput = (idIn, idOut) => {
@@ -300,7 +373,6 @@
             pagePreview.style.setProperty('--paper-opacity', e.target.value / 100);
         });
 
-        // New Slider: Tile Size (Only affects Mini Tiles mode)
         document.getElementById('inpTile').addEventListener('input', e => {
             document.getElementById('valTile').textContent = e.target.value;
             pagePreview.style.setProperty('--tile-size', e.target.value + 'px');
@@ -311,46 +383,61 @@
             pagePreview.className = 'page-preview ' + e.target.value;
         });
 
-        // Awesome Pre-Made Themes (Using high quality image URLs)
+        // Simple Pre-Made Themes Gradients
         const themes = {
-            fire: "url('https://images.unsplash.com/photo-1542204637-e67bc7d41e48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-            flowers: "url('https://images.unsplash.com/photo-1490750967868-88aa4486c946?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-            galaxy: "url('https://images.unsplash.com/photo-1462331940025-496dfbfc7564?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-            ocean: "url('https://images.unsplash.com/photo-1505118380757-91f5f5632de0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')",
-            neon: "url('https://images.unsplash.com/photo-1555680202-c86f0e12f086?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80')"
+            gold: 'linear-gradient(45deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C)',
+            sunset: 'linear-gradient(to right, #ffecd2 0%, #fcb69f 100%)',
+            nebula: 'radial-gradient(circle at top right, #1b2735 0%, #090a0f 100%)',
+            blue: 'linear-gradient(135deg, #00c6ff 0%, #0072ff 100%)',
+            stripes: 'repeating-linear-gradient(45deg, #ff9a9e, #ff9a9e 10px, #fecfef 10px, #fecfef 20px)'
         };
+
+        const btnRemove = document.getElementById('btnRemove');
+        let currentImageUrl = null;
 
         document.getElementById('selPremade').addEventListener('change', e => {
             const val = e.target.value;
-            document.getElementById('inpTheme').value = ''; // clear file input
+            document.getElementById('inpTheme').value = ''; 
             if (val === 'none') {
                 pagePreview.style.removeProperty('--theme-bg-raw');
+                btnRemove.style.display = 'none';
             } else {
                 pagePreview.style.setProperty('--theme-bg-raw', themes[val]);
+                btnRemove.style.display = 'block';
             }
         });
 
         // Image Upload
-        let currentImageUrl = null;
         document.getElementById('inpTheme').addEventListener('change', e => {
-            document.getElementById('selPremade').value = 'none'; // reset theme dropdown
+            document.getElementById('selPremade').value = 'none'; 
             const file = e.target.files[0];
             if (file) {
                 if (currentImageUrl) URL.revokeObjectURL(currentImageUrl);
                 currentImageUrl = URL.createObjectURL(file);
                 pagePreview.style.setProperty('--theme-bg-raw', `url('${currentImageUrl}')`);
+                btnRemove.style.display = 'block';
             }
         });
 
-        // Automatic PDF Download
+        // Remove Photo / Theme
+        btnRemove.addEventListener('click', () => {
+            document.getElementById('inpTheme').value = '';
+            document.getElementById('selPremade').value = 'none';
+            pagePreview.style.removeProperty('--theme-bg-raw');
+            btnRemove.style.display = 'none';
+            if (currentImageUrl) { 
+                URL.revokeObjectURL(currentImageUrl); 
+                currentImageUrl = null; 
+            }
+        });
+
+        // PDF Download
         document.getElementById('btnDownload').addEventListener('click', () => {
             const element = document.getElementById('pagePreview');
             const originalTransform = element.style.transform;
             
-            // Reset zoom so PDF generates properly
             element.style.transform = 'scale(1)';
             
-            // Determine size
             let pFormat = document.getElementById('selSize').value.toLowerCase();
             if(pFormat === 'legal') pFormat = [215.9, 355.6]; 
 
@@ -362,9 +449,8 @@
                 jsPDF:        { unit: 'mm', format: pFormat, orientation: 'portrait' }
             };
             
-            // Generate and Download
             html2pdf().set(opt).from(element).save().then(() => {
-                element.style.transform = originalTransform; // Restore zoom
+                element.style.transform = originalTransform; 
             });
         });
     </script>
