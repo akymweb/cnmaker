@@ -160,14 +160,19 @@
 
         /* Mobile Responsiveness */
         @media (max-width: 768px) {
-            .mobile-toggle { display: block; }
+            .mobile-toggle { display: block; top: 10px; left: 10px; z-index: 1001; }
             .sidebar { 
-                position: absolute; left: 0; top: 0; height: 100%; width: 320px; 
-                transform: translateX(-100%); /* Hidden by default on mobile */
+                position: fixed; left: 0; top: 0; height: 100%; width: 100%; max-width: 320px; 
+                transform: translateX(-100%); z-index: 1000; padding-top: 60px;
             }
-            .sidebar.active { transform: translateX(0); } /* Shown when toggled */
-            .zoom-controls { padding-left: 60px; /* Make room for mobile menu button */ flex-wrap: wrap; }
-            .preview-scroll-area { padding: 10px; }
+            .sidebar.active { transform: translateX(0); }
+            
+            /* Push zoom controls down so they don't hide behind the menu button */
+            .zoom-controls { padding-top: 60px; flex-wrap: wrap; }
+            
+            /* Fix clipping issues when zoomed out on small screens */
+            .preview-scroll-area { padding: 10px; justify-content: flex-start; }
+            #document-container { transform-origin: top left; }
         }
     </style>
 </head>
@@ -501,6 +506,18 @@
         // Init
         updateGlobalVariables();
         renderPages();
+
+        // Auto-zoom perfectly for mobile screens on load
+        if (window.innerWidth <= 768) {
+            // 850 is roughly the pixel width of A4 + padding
+            currentZoom = (window.innerWidth / 850); 
+            
+            // Put a hard limit so it doesn't get ridiculously small
+            if (currentZoom < 0.3) currentZoom = 0.3; 
+            
+            updateZoomUI();
+        }
+        
     </script>
 </body>
 </html>
